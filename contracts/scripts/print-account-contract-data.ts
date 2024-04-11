@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 
 // Etherlink
-// const ACCOUNT_CONTRACT_ADDRESS = "0x946d3ae183c6bd5a8310b188091109e87c10eee4";
+// const ACCOUNT_CONTRACT_ADDRESS = "0x885e9b86e4e2c8b77988f776485f616b31452ca5";
 
 // Localhost
 const ACCOUNT_CONTRACT_ADDRESS = "0xB4525059E4a2dae53000c42f4Ee34c0c119ecdef";
