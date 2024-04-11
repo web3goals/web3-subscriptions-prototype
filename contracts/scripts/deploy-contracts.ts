@@ -24,6 +24,12 @@ async function main() {
   console.log(
     `Contract 'Paymaster' deployed to: ${await paymasterContract.getAddress()}`
   );
+  const usdTokenContractFactory = await ethers.getContractFactory("USDToken");
+  const usdTokenContract = await usdTokenContractFactory.deploy();
+  await usdTokenContract.waitForDeployment();
+  console.log(
+    `Contract 'USDToken' deployed to: ${await usdTokenContract.getAddress()}`
+  );
 }
 
 main().catch((error) => {

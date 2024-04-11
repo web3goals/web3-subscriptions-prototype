@@ -27,7 +27,28 @@ contract Account is IAccount {
         return 0;
     }
 
-    function execute() external {
-        count++;
+    // function execute() external {
+    //     count++;
+    // }
+
+    /**
+     * execute a transaction (called directly from owner, or by entryPoint)
+     */
+    function execute(
+        address dest,
+        uint256 value,
+        bytes calldata func
+    ) external {
+        // _requireFromEntryPointOrOwner();
+        _call(dest, value, func);
+    }
+
+    function _call(address target, uint256 value, bytes memory data) internal {
+        (bool success, bytes memory result) = target.call{value: value}(data);
+        if (!success) {
+            assembly {
+                revert(add(result, 32), mload(result))
+            }
+        }
     }
 }

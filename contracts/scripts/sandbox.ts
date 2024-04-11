@@ -13,6 +13,7 @@ const ENTRY_POINT_CONTRACT_ADDRESS =
 const ACCOUNT_FACTORY_CONTRACT_ADDRESS =
   "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 const PAYMASTER_CONTRACT_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+const USD_TOKEN_CONTRACT_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 
 async function main() {
   console.log("👟 Start script 'sandbox'");
@@ -25,6 +26,7 @@ async function main() {
     "AccountFactory"
   );
   const accountContractFactory = await ethers.getContractFactory("Account");
+  const usdTokenContractFactory = await ethers.getContractFactory("USDToken");
 
   // Define contracts
   const entryPointContract = await ethers.getContractAt(
@@ -57,8 +59,16 @@ async function main() {
   const nonce = Number(await entryPointContract.getNonce(sender as string, 0));
   console.log("nonce:", nonce);
 
-  const callData =
-    accountContractFactory.interface.encodeFunctionData("execute");
+  // const callData =
+  //   accountContractFactory.interface.encodeFunctionData("execute");
+  const callData = accountContractFactory.interface.encodeFunctionData(
+    "execute",
+    [
+      USD_TOKEN_CONTRACT_ADDRESS,
+      ethers.ZeroHash,
+      usdTokenContractFactory.interface.encodeFunctionData("mint", [2]),
+    ]
+  );
   console.log("callData:", callData);
 
   const userOp = {
