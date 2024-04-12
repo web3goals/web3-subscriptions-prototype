@@ -1,13 +1,14 @@
 "use client";
 
 import { siteConfig } from "@/config/site";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { addressToShortAddress } from "@/lib/converters";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import Link from "next/link";
-import { useAccount } from "wagmi";
 import { ThemeToggle } from "./theme-toggle";
+import { Button } from "./ui/button";
 
 export function SiteHeader() {
-  const { address } = useAccount();
+  const { authenticated } = usePrivy();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -22,7 +23,7 @@ export function SiteHeader() {
         </div>
         <div className="flex flex-1 items-center justify-end space-x-8">
           <ConnectButton />
-          {address && (
+          {authenticated && (
             <Link
               href={`/dashboard`}
               className="hidden md:block text-sm font-medium text-muted-foreground"
@@ -43,4 +44,28 @@ export function SiteHeader() {
       </div>
     </header>
   );
+}
+
+function ConnectButton() {
+  const { ready, authenticated, login, logout } = usePrivy();
+  const { wallets, ready: walletsReady } = useWallets();
+
+  if (ready && !authenticated) {
+    return <Button onClick={login}>Login</Button>;
+  }
+
+  if (ready && authenticated) {
+    return (
+      <Button variant="outline" onClick={logout}>
+        Logout{" "}
+        {walletsReady && (
+          <span className="text-xs text-muted-foreground pl-1">
+            ({addressToShortAddress(wallets?.[0]?.address)})
+          </span>
+        )}
+      </Button>
+    );
+  }
+
+  return <></>;
 }

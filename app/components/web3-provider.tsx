@@ -1,15 +1,25 @@
 "use client";
 
 import { siteConfig } from "@/config/site";
-import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
-import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider } from "wagmi";
+import { WagmiProvider, createConfig, http } from "wagmi";
+import { PrivyProvider, type PrivyClientConfig } from "@privy-io/react-auth";
 
-const config = getDefaultConfig({
-  appName: siteConfig.name,
-  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID as string,
+export const privyConfig: PrivyClientConfig = {
+  embeddedWallets: {
+    createOnLogin: "users-without-wallets",
+  },
+  loginMethods: ["wallet", "google"],
+  appearance: {
+    showWalletLoginFirst: true,
+  },
+};
+
+const wagmiConfig = createConfig({
   chains: [siteConfig.contracts.chain],
+  transports: {
+    [siteConfig.contracts.chain.id]: http(),
+  },
   ssr: true,
 });
 
@@ -17,10 +27,12 @@ const queryClient = new QueryClient();
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>{children}</RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <PrivyProvider
+      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID as string}
+      config={privyConfig}
+    >
+      <QueryClientProvider client={queryClient}></QueryClientProvider>
+      <WagmiProvider config={wagmiConfig}>{children}</WagmiProvider>
+    </PrivyProvider>
   );
 }
