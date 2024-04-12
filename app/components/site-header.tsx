@@ -2,13 +2,16 @@
 
 import { siteConfig } from "@/config/site";
 import { addressToShortAddress } from "@/lib/converters";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
 import Link from "next/link";
+import { useAccount } from "wagmi";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 
 export function SiteHeader() {
-  const { authenticated } = usePrivy();
+  const { address } = useAccount();
+
+  console.log("Connected account:", address);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -23,7 +26,7 @@ export function SiteHeader() {
         </div>
         <div className="flex flex-1 items-center justify-end space-x-8">
           <ConnectButton />
-          {authenticated && (
+          {address && (
             <Link
               href={`/dashboard`}
               className="hidden md:block text-sm font-medium text-muted-foreground"
@@ -47,8 +50,8 @@ export function SiteHeader() {
 }
 
 function ConnectButton() {
-  const { ready, authenticated, login, logout } = usePrivy();
-  const { wallets, ready: walletsReady } = useWallets();
+  const { ready, authenticated, login, logout, user } = usePrivy();
+  const { address } = useAccount();
 
   if (ready && !authenticated) {
     return <Button onClick={login}>Login</Button>;
@@ -58,9 +61,9 @@ function ConnectButton() {
     return (
       <Button variant="outline" onClick={logout}>
         Logout{" "}
-        {walletsReady && (
+        {address && (
           <span className="text-xs text-muted-foreground pl-1">
-            ({addressToShortAddress(wallets?.[0]?.address)})
+            ({addressToShortAddress(address)})
           </span>
         )}
       </Button>
