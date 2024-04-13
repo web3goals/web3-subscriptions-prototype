@@ -1,13 +1,12 @@
 "use client";
 
 import { siteConfig } from "@/config/site";
-import { entryPointAbi } from "@/contracts/abi/entryPoints";
 import { productAbi } from "@/contracts/abi/product";
 import useError from "@/hooks/useError";
+import useMetadataLoader from "@/hooks/useMetadataLoader";
 import { getSmartAccountAddress } from "@/lib/actions";
 import { addressToShortAddress } from "@/lib/converters";
 import { ProductMetadata } from "@/types/product-metadata";
-import { Separator } from "@radix-ui/react-separator";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { erc20Abi, formatEther, isAddressEqual, zeroAddress } from "viem";
@@ -19,11 +18,11 @@ import {
   useWalletClient,
 } from "wagmi";
 import EntityList from "./entity-list";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
+import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
 import { toast } from "./ui/use-toast";
-import useMetadataLoader from "@/hooks/useMetadataLoader";
-import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 
 const LIMIT = 42;
 
@@ -284,7 +283,63 @@ function ProductCardHeader(props: { product: string }) {
   );
 }
 
-// TODO: Implement
 function ProductCardSubscribers(props: { product: string }) {
-  return <Skeleton className="w-full h-4" />;
+  const { data: subscribers } = useReadContract({
+    address: siteConfig.contracts.product,
+    abi: productAbi,
+    functionName: "getSubscribers",
+    args: [BigInt(props.product)],
+  });
+
+  return (
+    <div className="w-full flex flex-row gap-4">
+      {/* Icon */}
+      <div>
+        <Avatar className="size-12">
+          <AvatarImage src="" alt="Icon" />
+          <AvatarFallback className="text-base">💙</AvatarFallback>
+        </Avatar>
+      </div>
+      {/* Content */}
+      <div className="w-full">
+        <p className="text-base font-bold">Subscribers & Payments</p>
+        {subscribers ? (
+          <div className="flex flex-col gap-4 mt-4">
+            {subscribers.length === 0 && (
+              <p className="text-sm text-muted-foreground">No subscribers 😐</p>
+            )}
+            {subscribers.map((subscriber, index) => (
+              <ProductCardSubscriber
+                key={index}
+                product={props.product}
+                subscriber={subscriber}
+              />
+            ))}
+          </div>
+        ) : (
+          <Skeleton className="w-full h-8 mt-4" />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// TODO: Load subscriber last payment in a independent component using smart contract
+function ProductCardSubscriber(props: {
+  product: string;
+  subscriber: `0x${string}`;
+}) {
+  return (
+    <>
+      <p className="text-sm">
+        <a
+          href={`${siteConfig.contracts.chain.blockExplorers.default.url}/address/${props.subscriber}`}
+          target="_blank"
+          className="underline underline-offset-4"
+        >
+          {addressToShortAddress(props.subscriber)}
+        </a>
+      </p>
+    </>
+  );
 }
