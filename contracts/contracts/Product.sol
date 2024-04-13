@@ -22,20 +22,24 @@ contract Product is ERC721URIStorage, ERC721Holder {
     mapping(uint tokenId => address[] subscriber) private _subscribers;
     mapping(uint tokenId => mapping(address subscriber => uint lastPaymentDate))
         private _payments;
-    uint256 public tableId;
-    string private constant _TABLE_PREFIX = "product_payments";
 
-    constructor() ERC721("Crypto Subscriptions - Product", "CSP") {}
+    constructor() ERC721("Web3 Subscriptions Product", "W3SP") {}
 
-    function create(
-        uint subscriptionCost,
-        address subscriptionToken,
-        uint subscriptionPeriod,
-        string memory tokenURI
-    ) public {
+    function create(string memory tokenURI) public {
         uint256 tokenId = _nextTokenId++;
         _mint(msg.sender, tokenId);
-        _setTokenURI(tokenId, tokenURI);
+        _setTokenURI(tokenId, string(abi.encodePacked(tokenURI)));
+    }
+
+    function setParams(
+        uint tokenId,
+        uint subscriptionCost,
+        address subscriptionToken,
+        uint subscriptionPeriod
+    ) public {
+        // Check owner and balance
+        require(_ownerOf(tokenId) == msg.sender, "Not owner");
+        // Set params
         _params[tokenId] = Params(
             subscriptionCost,
             subscriptionToken,

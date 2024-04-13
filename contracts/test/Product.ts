@@ -38,17 +38,20 @@ describe("Product", function () {
     const { userOne, userTwo, usdTokenContract, productContract } =
       await loadFixture(initFixture);
     // Create product
+    await expect(productContract.connect(userOne).create("ipfs://1")).to.be.not
+      .reverted;
+    const productId = (await productContract.getNextTokenId()) - 1n;
+    // Set params
     await expect(
       productContract
         .connect(userOne)
-        .create(
+        .setParams(
+          productId,
           ethers.parseEther("2"),
           usdTokenContract.getAddress(),
-          60 * 10,
-          "ipfs://1"
+          60 * 10
         )
     ).to.be.not.reverted;
-    const productId = (await productContract.getNextTokenId()) - 1n;
     // Approve
     await expect(
       usdTokenContract
