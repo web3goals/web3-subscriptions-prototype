@@ -10,8 +10,15 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { isAddress, parseEther } from "viem";
-import { usePublicClient, useWalletClient } from "wagmi";
+import {
+  encodeFunctionData,
+  isAddress,
+  parseEther,
+  parseEventLogs,
+  stringToBytes,
+  stringToHex,
+} from "viem";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { z } from "zod";
 import { Button } from "./ui/button";
 import {
@@ -32,11 +39,13 @@ import {
 } from "./ui/select";
 import { Textarea } from "./ui/textarea";
 import { toast } from "./ui/use-toast";
+import { executeViaSmartAccount } from "@/lib/actions";
 
 export function ProductCreateForm() {
   const { handleError } = useError();
   const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
+  // const { data: walletClient } = useWalletClient();
+  const { address } = useAccount();
   const router = useRouter();
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 
@@ -68,11 +77,12 @@ export function ProductCreateForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsFormSubmitting(true);
-      // Check clients
+      // Check public client
       if (!publicClient) {
         throw new Error("Public client is not ready");
       }
-      if (!walletClient) {
+      // Check wallet
+      if (!address) {
         throw new Error("Wallet is not connected");
       }
       // Parse values
@@ -103,20 +113,42 @@ export function ProductCreateForm() {
         webhook: values.webhook,
       };
       const metadataUri = await uploadJsonToIpfs(metadata);
-      // Send request
-      const txHash = await walletClient.writeContract({
-        address: siteConfig.contracts.product,
-        abi: productAbi,
-        functionName: "create",
-        args: [
-          subscriptionCost,
-          subscriptionToken,
-          subscriptionPeriod,
-          metadataUri,
-        ],
+      // Send requests to create a product via smart account
+      const createTxHash = await executeViaSmartAccount(
+        address,
+        siteConfig.contracts.product,
+        encodeFunctionData({
+          abi: productAbi,
+          functionName: "create",
+          args: [metadataUri],
+        })
+      );
+      const createTxReceipt = await publicClient.waitForTransactionReceipt({
+        hash: createTxHash as `0x${string}`,
       });
+      const createTxLogs = parseEventLogs({
+        abi: productAbi,
+        eventName: "Transfer",
+        logs: createTxReceipt.logs,
+      });
+      const createdProductId = createTxLogs[0].args.tokenId;
+      // Send request to set product params via smart account
+      const setParamstxHash = await executeViaSmartAccount(
+        address,
+        siteConfig.contracts.product,
+        encodeFunctionData({
+          abi: productAbi,
+          functionName: "setParams",
+          args: [
+            createdProductId,
+            subscriptionCost,
+            subscriptionToken,
+            subscriptionPeriod,
+          ],
+        })
+      );
       await publicClient.waitForTransactionReceipt({
-        hash: txHash,
+        hash: setParamstxHash as `0x${string}`,
       });
       // Show success message
       toast({

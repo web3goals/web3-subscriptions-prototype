@@ -11,7 +11,7 @@ export const siteConfig = {
   },
   contracts: {
     chain: etherlinkTestnet,
-    product: "0x30C78bB0E789095ff0995d5Ea5CC1f4B357417c6" as `0x${string}`,
+    product: "0x4F3681bA990a80e7f5F1BdDDADF7c0D864f10342" as `0x${string}`,
     usdt: "0xe720443310986E173af339fA366A30aa0A1Ea5b2" as `0x${string}`,
     entryPoint: "0x539dA825856778B593a55aC4E8A0Ec1441f18e78" as `0x${string}`,
     paymaster: "0x57d1469c53Bb259Dc876A274ADd329Eb703Ab286" as `0x${string}`,

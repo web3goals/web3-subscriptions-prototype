@@ -11,8 +11,6 @@ import { Button } from "./ui/button";
 export function SiteHeader() {
   const { address } = useAccount();
 
-  console.log("Connected account:", address);
-
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">

@@ -151,21 +151,6 @@ export const productAbi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "subscriptionCost",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "subscriptionToken",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "subscriptionPeriod",
-        type: "uint256",
-      },
-      {
         internalType: "string",
         name: "tokenURI",
         type: "string",
@@ -442,6 +427,34 @@ export const productAbi = [
         type: "uint256",
       },
       {
+        internalType: "uint256",
+        name: "subscriptionCost",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "subscriptionToken",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "subscriptionPeriod",
+        type: "uint256",
+      },
+    ],
+    name: "setParams",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
         internalType: "string",
         name: "email",
         type: "string",
@@ -479,19 +492,6 @@ export const productAbi = [
         internalType: "string",
         name: "",
         type: "string",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "tableId",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
       },
     ],
     stateMutability: "view",
