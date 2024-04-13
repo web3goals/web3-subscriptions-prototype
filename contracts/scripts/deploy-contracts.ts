@@ -3,10 +3,10 @@ import { ethers } from "hardhat";
 // Etherlink data
 export const CONTRACTS = {
   entryPoint: "0x539dA825856778B593a55aC4E8A0Ec1441f18e78",
-  accountFactory: "0x1F2c31D5034F27A4352Bc6ca0fc72cdC32809808",
+  accountFactory: "0xBBae3088AaF60c44Fb932ba82fd0b3dbb2d67C6F",
   paymaster: "0x57d1469c53Bb259Dc876A274ADd329Eb703Ab286",
   product: "0x30C78bB0E789095ff0995d5Ea5CC1f4B357417c6",
-  usdToken: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+  usdToken: "0xe720443310986E173af339fA366A30aa0A1Ea5b2",
 };
 
 async function main() {
