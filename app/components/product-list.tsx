@@ -35,6 +35,7 @@ export function ProductList(props: { contracts: SiteConfigContracts }) {
             abi: productAbi,
             functionName: "ownerOf",
             args: [BigInt(pageParam + i)],
+            chainId: props.contracts.chain.id,
           } as const)
       );
     },
@@ -120,6 +121,7 @@ function ProductCardHeader(props: {
     abi: productAbi,
     functionName: "getParams",
     args: [BigInt(props.product)],
+    chainId: props.contracts.chain.id,
   });
   const { data: productMetadataUri, isFetched: isProductMetadataUriFetched } =
     useReadContract({
@@ -127,6 +129,7 @@ function ProductCardHeader(props: {
       abi: productAbi,
       functionName: "tokenURI",
       args: [BigInt(props.product)],
+      chainId: props.contracts.chain.id,
     });
   const { data: productMetadata, isLoaded: isProductMetadataLoaded } =
     useMetadataLoader<ProductMetadata>(productMetadataUri);
@@ -258,6 +261,7 @@ function ProductCardSubscribers(props: {
     abi: productAbi,
     functionName: "getSubscribers",
     args: [BigInt(props.product)],
+    chainId: props.contracts.chain.id,
   });
 
   return (
@@ -305,6 +309,7 @@ function ProductCardSubscriber(props: {
       abi: productAbi,
       functionName: "getLastPaymentDate",
       args: [BigInt(props.product), props.subscriber],
+      chainId: props.contracts.chain.id,
     });
 
   if (isLastPaymentDateFetching) {

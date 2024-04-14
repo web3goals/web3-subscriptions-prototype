@@ -24,6 +24,7 @@ export function Product(props: {
       abi: productAbi,
       functionName: "getParams",
       args: [BigInt(props.product)],
+      chainId: props.contracts.chain.id,
     });
   const { data: productMetadataUri, isFetched: isProductMetadataUriFetched } =
     useReadContract({
@@ -31,6 +32,7 @@ export function Product(props: {
       abi: productAbi,
       functionName: "tokenURI",
       args: [BigInt(props.product)],
+      chainId: props.contracts.chain.id,
     });
   const { data: productMetadata, isLoaded: isProductMetadataLoaded } =
     useMetadataLoader<ProductMetadata>(productMetadataUri);
@@ -45,6 +47,7 @@ export function Product(props: {
     address: productParams?.subscriptionToken || zeroAddress,
     abi: erc20Abi,
     functionName: "symbol",
+    chainId: props.contracts.chain.id,
   });
 
   if (
