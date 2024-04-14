@@ -15,9 +15,9 @@ export default function SandboxPage() {
     console.log("Connected account:", address);
   }
 
-  async function runTest1() {
+  async function mintUsdt() {
     try {
-      console.log("runTest1()");
+      console.log("mintUsdt");
       executeViaSmartAccount(
         address as `0x${string}`,
         siteConfig.contracts.usdt,
@@ -40,8 +40,8 @@ export default function SandboxPage() {
       <Separator className="my-6" />
       <div className="flex flex-col items-start gap-4">
         <Button onClick={printConnectedAccount}>Print connected account</Button>
-        <Button onClick={runTest1} variant="outline">
-          Run Test 1
+        <Button onClick={mintUsdt} variant="outline">
+          Mint USDT
         </Button>
       </div>
     </div>
