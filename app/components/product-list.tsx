@@ -2,27 +2,19 @@
 
 import { siteConfig } from "@/config/site";
 import { productAbi } from "@/contracts/abi/product";
-import useError from "@/hooks/useError";
 import useMetadataLoader from "@/hooks/useMetadataLoader";
 import { getSmartAccountAddress } from "@/lib/actions";
 import { addressToShortAddress } from "@/lib/converters";
 import { ProductMetadata } from "@/types/product-metadata";
-import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { erc20Abi, formatEther, isAddressEqual, zeroAddress } from "viem";
-import {
-  useAccount,
-  useInfiniteReadContracts,
-  usePublicClient,
-  useReadContract,
-  useWalletClient,
-} from "wagmi";
+import { useAccount, useInfiniteReadContracts, useReadContract } from "wagmi";
 import EntityList from "./entity-list";
+import { ProductWithdrawDialog } from "./product-withdraw-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
-import { toast } from "./ui/use-toast";
 
 const LIMIT = 42;
 
@@ -145,61 +137,6 @@ function ProductCardHeader(props: { product: string }) {
     );
   }
 
-  function WithdrawButton() {
-    const { handleError } = useError();
-    const { address } = useAccount();
-    const publicClient = usePublicClient();
-    const { data: walletClient } = useWalletClient();
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // TODO: Use smart account
-    // TODO: Show dialog with address input
-    async function onSubmit() {
-      try {
-        setIsSubmitting(true);
-        // Check clients
-        if (!publicClient) {
-          throw new Error("Public client is not ready");
-        }
-        if (!walletClient) {
-          throw new Error("Wallet is not connected");
-        }
-        // Send request
-        const { request } = await publicClient.simulateContract({
-          account: walletClient.account.address,
-          address: siteConfig.contracts.product,
-          abi: productAbi,
-          functionName: "withdraw",
-          args: [BigInt(props.product), address || zeroAddress],
-        });
-        const txHash = await walletClient.writeContract(request);
-        await publicClient.waitForTransactionReceipt({
-          hash: txHash,
-        });
-        // Show success message
-        refetchProductParams();
-        toast({
-          title: "Withdrawn successfully 👌",
-        });
-      } catch (error: any) {
-        handleError(error, true);
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-
-    return (
-      <Button
-        variant="outline"
-        disabled={isSubmitting}
-        onClick={() => onSubmit()}
-      >
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Withdraw Balance
-      </Button>
-    );
-  }
-
   if (
     !isProductParamsFetched ||
     !isProductMetadataUriFetched ||
@@ -278,7 +215,10 @@ function ProductCardHeader(props: { product: string }) {
         </div>
         <div className="flex flex-col gap-2 mt-6 md:flex-row">
           <OpenPageButton />
-          <WithdrawButton />
+          <ProductWithdrawDialog
+            product={props.product}
+            onWithdraw={() => refetchProductParams()}
+          />
         </div>
       </div>
     </div>
@@ -330,15 +270,16 @@ function ProductCardSubscriber(props: {
   product: string;
   subscriber: `0x${string}`;
 }) {
-  const { data: lastPaymentDate } = useReadContract({
-    address: siteConfig.contracts.product,
-    abi: productAbi,
-    functionName: "getLastPaymentDate",
-    args: [BigInt(props.product), props.subscriber],
-  });
+  const { data: lastPaymentDate, isFetching: isLastPaymentDateFetching } =
+    useReadContract({
+      address: siteConfig.contracts.product,
+      abi: productAbi,
+      functionName: "getLastPaymentDate",
+      args: [BigInt(props.product), props.subscriber],
+    });
 
-  if (!lastPaymentDate) {
-    return <Skeleton className="w-full h-8" />;
+  if (isLastPaymentDateFetching) {
+    return <Skeleton className="w-full h-5" />;
   }
 
   return (
@@ -353,7 +294,10 @@ function ProductCardSubscriber(props: {
         </a>
         <span className="text-muted-foreground">
           {" "}
-          — {new Date(Number(lastPaymentDate) * 1000).toLocaleString()}
+          —{" "}
+          {Number(lastPaymentDate) > 0
+            ? new Date(Number(lastPaymentDate) * 1000).toLocaleString()
+            : "No payments"}
         </span>
       </p>
     </>
