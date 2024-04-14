@@ -1,6 +1,6 @@
 "use client";
 
-import { siteConfig } from "@/config/site";
+import { SiteConfigContracts } from "@/config/site";
 import { productAbi } from "@/contracts/abi/product";
 import useError from "@/hooks/useError";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +27,7 @@ export function ProductSubscribeForm(props: {
   subscriptionCost: bigint;
   subscriptionToken: `0x${string}`;
   subscriptionTokenSymbol: string;
+  contracts: SiteConfigContracts;
 }) {
   const { handleError } = useError();
   const publicClient = usePublicClient();
@@ -62,7 +63,7 @@ export function ProductSubscribeForm(props: {
         address: props.subscriptionToken,
         abi: erc20Abi,
         functionName: "approve",
-        args: [siteConfig.contracts.product, approveAmount],
+        args: [props.contracts.product, approveAmount],
       });
       const approveTxHash = await walletClient.writeContract(approveRequest);
       await publicClient.waitForTransactionReceipt({
@@ -72,7 +73,7 @@ export function ProductSubscribeForm(props: {
       const { request: subscribeRequest } = await publicClient.simulateContract(
         {
           account: walletClient.account.address,
-          address: siteConfig.contracts.product,
+          address: props.contracts.product,
           abi: productAbi,
           functionName: "subscribe",
           args: [BigInt(props.product)],

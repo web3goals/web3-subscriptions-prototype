@@ -1,4 +1,4 @@
-import { siteConfig } from "@/config/site";
+import { SiteConfigContracts } from "@/config/site";
 import { productAbi } from "@/contracts/abi/product";
 import useError from "@/hooks/useError";
 import { executeViaSmartAccount } from "@/lib/actions";
@@ -24,6 +24,7 @@ import { useToast } from "./ui/use-toast";
 
 export function ProductWithdrawDialog(props: {
   product: string;
+  contracts: SiteConfigContracts;
   onWithdraw: () => {};
 }) {
   const { handleError } = useError();
@@ -62,12 +63,13 @@ export function ProductWithdrawDialog(props: {
       // Send request via smart account
       const setParamstxHash = await executeViaSmartAccount(
         address,
-        siteConfig.contracts.product,
+        props.contracts.product,
         encodeFunctionData({
           abi: productAbi,
           functionName: "withdraw",
           args: [BigInt(props.product), values.destination],
-        })
+        }),
+        props.contracts
       );
       await publicClient.waitForTransactionReceipt({
         hash: setParamstxHash as `0x${string}`,

@@ -6,7 +6,11 @@ import { WagmiProvider, createConfig } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http } from "viem";
 
-export const privyConfig: PrivyClientConfig = {
+const supportedChains = Object.values(siteConfig.contracts).map(
+  (contracts) => contracts.chain
+);
+
+const privyConfig: PrivyClientConfig = {
   embeddedWallets: {
     createOnLogin: "users-without-wallets",
     noPromptOnSignature: false,
@@ -15,15 +19,19 @@ export const privyConfig: PrivyClientConfig = {
   appearance: {
     showWalletLoginFirst: true,
   },
-  supportedChains: [siteConfig.contracts.chain],
-  defaultChain: siteConfig.contracts.chain,
+  supportedChains: supportedChains,
+  defaultChain: supportedChains[0],
 };
 
+const wagmiTransports = supportedChains.reduce(
+  (prevoiusValue, chain) =>
+    Object.assign(prevoiusValue, { [chain.id]: http() }),
+  {}
+);
+
 const wagmiConfig = createConfig({
-  chains: [siteConfig.contracts.chain],
-  transports: {
-    [siteConfig.contracts.chain.id]: http(),
-  },
+  chains: [supportedChains[0], ...supportedChains.slice(1)],
+  transports: wagmiTransports,
   ssr: true,
 });
 

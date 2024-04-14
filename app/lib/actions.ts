@@ -1,6 +1,6 @@
 "use server";
 
-import { siteConfig } from "@/config/site";
+import { SiteConfigContracts, siteConfig } from "@/config/site";
 import { accountAbi } from "@/contracts/abi/accountAbi";
 import { accountFactoryAbi } from "@/contracts/abi/accountFactory";
 import { entryPointAbi } from "@/contracts/abi/entryPoints";
@@ -14,7 +14,6 @@ import {
   parseUnits,
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { etherlinkTestnet } from "viem/chains";
 
 export async function generateAccount() {
   console.log("generateAccount");
@@ -25,7 +24,8 @@ export async function generateAccount() {
 }
 
 export async function getSmartAccountAddress(
-  owner: `0x${string}`
+  owner: `0x${string}`,
+  contracts: SiteConfigContracts
 ): Promise<string | undefined> {
   console.log("getSmartAccountAddress");
 
@@ -35,12 +35,12 @@ export async function getSmartAccountAddress(
 
   const fakeBundlerWalletClient = createWalletClient({
     account: fakeBundlerAccount,
-    chain: etherlinkTestnet,
+    chain: contracts.chain,
     transport: http(),
   });
 
   let initCode =
-    siteConfig.contracts.accountFactory +
+    contracts.accountFactory +
     encodeFunctionData({
       abi: accountFactoryAbi,
       functionName: "createAccount",
@@ -51,7 +51,7 @@ export async function getSmartAccountAddress(
   let sender;
   try {
     await fakeBundlerWalletClient.writeContract({
-      address: siteConfig.contracts.entryPoint,
+      address: contracts.entryPoint,
       abi: entryPointAbi,
       functionName: "getSenderAddress",
       args: [initCode as `0x${string}`],
@@ -76,7 +76,8 @@ export async function getSmartAccountAddress(
 export async function executeViaSmartAccount(
   owner: `0x${string}`,
   executeDestination: `0x${string}`,
-  executeFunction: `0x${string}`
+  executeFunction: `0x${string}`,
+  contracts: SiteConfigContracts
 ): Promise<string> {
   console.log("executeViaSmartAccount");
 
@@ -85,18 +86,18 @@ export async function executeViaSmartAccount(
   );
 
   const publicClient = createPublicClient({
-    chain: etherlinkTestnet,
+    chain: contracts.chain,
     transport: http(),
   });
 
   const fakeBundlerWalletClient = createWalletClient({
     account: fakeBundlerAccount,
-    chain: etherlinkTestnet,
+    chain: contracts.chain,
     transport: http(),
   });
 
   let initCode =
-    siteConfig.contracts.accountFactory +
+    contracts.accountFactory +
     encodeFunctionData({
       abi: accountFactoryAbi,
       functionName: "createAccount",
@@ -107,12 +108,13 @@ export async function executeViaSmartAccount(
   let sender;
   try {
     await fakeBundlerWalletClient.writeContract({
-      address: siteConfig.contracts.entryPoint,
+      address: contracts.entryPoint,
       abi: entryPointAbi,
       functionName: "getSenderAddress",
       args: [initCode as `0x${string}`],
     });
   } catch (error: any) {
+    console.log("error:", JSON.stringify(error));
     console.log(
       "error:",
       error?.cause?.cause?.cause?.cause?.cause?.cause?.data
@@ -135,7 +137,7 @@ export async function executeViaSmartAccount(
   console.log("code:", code);
 
   const nonce = await publicClient.readContract({
-    address: siteConfig.contracts.entryPoint,
+    address: contracts.entryPoint,
     abi: entryPointAbi,
     functionName: "getNonce",
     args: [sender as `0x${string}`, BigInt(0)],
@@ -159,14 +161,14 @@ export async function executeViaSmartAccount(
     preVerificationGas: BigInt(100_000),
     maxFeePerGas: parseUnits("2", etherUnits.gwei),
     maxPriorityFeePerGas: parseUnits("2", etherUnits.gwei),
-    paymasterAndData: siteConfig.contracts.paymaster,
+    paymasterAndData: contracts.paymaster,
     signature:
       "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c" as `0x${string}`,
   };
 
   // Handle user operation without real bundler
   const tx = await fakeBundlerWalletClient.writeContract({
-    address: siteConfig.contracts.entryPoint,
+    address: contracts.entryPoint,
     abi: entryPointAbi,
     functionName: "handleOps",
     args: [[userOp], process.env.FAKE_BUNDLER_ACCOUNT_ADDRESS as `0x${string}`],

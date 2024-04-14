@@ -2,30 +2,29 @@
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { siteConfig } from "@/config/site";
 import { usdTokenAbi } from "@/contracts/abi/usdTokenAbi";
+import useSiteConfigContracts from "@/hooks/useSiteConfigContracts";
 import { executeViaSmartAccount } from "@/lib/actions";
 import { encodeFunctionData } from "viem";
 import { useAccount } from "wagmi";
 
 export default function SandboxPage() {
-  const { address } = useAccount();
-
-  async function printConnectedAccount() {
-    console.log("Connected account:", address);
-  }
+  const { address, chain } = useAccount();
+  const { contracts } = useSiteConfigContracts(chain);
 
   async function mintUsdt() {
     try {
       console.log("mintUsdt");
+      // console.log(contracts);
       executeViaSmartAccount(
         address as `0x${string}`,
-        siteConfig.contracts.usdt,
+        contracts.usdt,
         encodeFunctionData({
           abi: usdTokenAbi,
           functionName: "mint",
           args: [BigInt(3)],
-        })
+        }),
+        contracts
       );
     } catch (error: any) {
       console.log(error);
@@ -39,10 +38,9 @@ export default function SandboxPage() {
       </div>
       <Separator className="my-6" />
       <div className="flex flex-col items-start gap-4">
-        <Button onClick={printConnectedAccount}>Print connected account</Button>
-        <Button onClick={mintUsdt} variant="outline">
-          Mint USDT
-        </Button>
+        <p>Account — {address}</p>
+        <p>Chain — {chain?.id}</p>
+        <Button onClick={mintUsdt}>Mint USDT</Button>
       </div>
     </div>
   );

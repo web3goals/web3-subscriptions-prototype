@@ -1,10 +1,10 @@
 "use client";
 
-import { siteConfig } from "@/config/site";
 import { productAbi } from "@/contracts/abi/product";
 import useError from "@/hooks/useError";
 import { executeViaSmartAccount } from "@/lib/actions";
 import { uploadJsonToIpfs } from "@/lib/ipfs";
+import { chainToSiteConfigContracts } from "@/lib/siteConfig";
 import { ProductMetadata } from "@/types/product-metadata";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -64,7 +64,7 @@ export function ProductCreateForm() {
       label: "",
       description: "",
       subscriptionCost: 5,
-      subscriptionToken: siteConfig.contracts.usdt,
+      subscriptionToken: "",
       subscriptionChain: undefined,
       subscriptionPeriod: undefined,
       webhook: "",
@@ -82,6 +82,8 @@ export function ProductCreateForm() {
       if (!address) {
         throw new Error("Wallet is not connected");
       }
+      // Define contracts
+      const contracts = chainToSiteConfigContracts(values.subscriptionChain);
       // Parse values
       let subscriptionCost = parseEther(String(values.subscriptionCost));
       let subscriptionToken;
@@ -113,12 +115,13 @@ export function ProductCreateForm() {
       // Send requests to create a product via smart account
       const createTxHash = await executeViaSmartAccount(
         address,
-        siteConfig.contracts.product,
+        contracts.product,
         encodeFunctionData({
           abi: productAbi,
           functionName: "create",
           args: [metadataUri],
-        })
+        }),
+        contracts
       );
       const createTxReceipt = await publicClient.waitForTransactionReceipt({
         hash: createTxHash as `0x${string}`,
@@ -132,7 +135,7 @@ export function ProductCreateForm() {
       // Send request to set product params via smart account
       const setParamstxHash = await executeViaSmartAccount(
         address,
-        siteConfig.contracts.product,
+        contracts.product,
         encodeFunctionData({
           abi: productAbi,
           functionName: "setParams",
@@ -142,7 +145,8 @@ export function ProductCreateForm() {
             subscriptionToken,
             subscriptionPeriod,
           ],
-        })
+        }),
+        contracts
       );
       await publicClient.waitForTransactionReceipt({
         hash: setParamstxHash as `0x${string}`,
@@ -264,9 +268,8 @@ export function ProductCreateForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="etherlinkTestnet">
-                    Etherlink Testnet
-                  </SelectItem>
+                  <SelectItem value="128123">Etherlink Testnet</SelectItem>
+                  <SelectItem value="8082">Shardeum Testnet</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

@@ -1,6 +1,6 @@
 "use client";
 
-import { siteConfig } from "@/config/site";
+import { SiteConfigContracts } from "@/config/site";
 import { productAbi } from "@/contracts/abi/product";
 import useMetadataLoader from "@/hooks/useMetadataLoader";
 import { getSmartAccountAddress } from "@/lib/actions";
@@ -18,7 +18,7 @@ import { Skeleton } from "./ui/skeleton";
 
 const LIMIT = 42;
 
-export function ProductList() {
+export function ProductList(props: { contracts: SiteConfigContracts }) {
   const { address } = useAccount();
   const [smartAccountAddress, setSmartAccountAddress] = useState<
     `0x${string}` | undefined
@@ -31,7 +31,7 @@ export function ProductList() {
       return [...new Array(LIMIT)].map(
         (_, i) =>
           ({
-            address: siteConfig.contracts.product,
+            address: props.contracts.product,
             abi: productAbi,
             functionName: "ownerOf",
             args: [BigInt(pageParam + i)],
@@ -49,11 +49,12 @@ export function ProductList() {
   useEffect(() => {
     setSmartAccountAddress(undefined);
     if (address) {
-      getSmartAccountAddress(address).then((smartAccountAddress) =>
-        setSmartAccountAddress(smartAccountAddress as `0x${string}`)
+      getSmartAccountAddress(address, props.contracts).then(
+        (smartAccountAddress) =>
+          setSmartAccountAddress(smartAccountAddress as `0x${string}`)
       );
     }
-  }, [address]);
+  }, [address, props.contracts]);
 
   useEffect(() => {
     setProducts(undefined);
@@ -76,24 +77,37 @@ export function ProductList() {
     <EntityList
       entities={products}
       renderEntityCard={(product, index) => (
-        <ProductCard key={index} product={product} />
+        <ProductCard
+          key={index}
+          product={product}
+          contracts={props.contracts}
+        />
       )}
       noEntitiesText="No products 😐"
     />
   );
 }
 
-export function ProductCard(props: { product: string }) {
+export function ProductCard(props: {
+  product: string;
+  contracts: SiteConfigContracts;
+}) {
   return (
     <div className="w-full flex flex-col items-center border rounded px-4 py-4">
-      <ProductCardHeader product={props.product} />
+      <ProductCardHeader product={props.product} contracts={props.contracts} />
       <Separator className="my-4" />
-      <ProductCardSubscribers product={props.product} />
+      <ProductCardSubscribers
+        product={props.product}
+        contracts={props.contracts}
+      />
     </div>
   );
 }
 
-function ProductCardHeader(props: { product: string }) {
+function ProductCardHeader(props: {
+  product: string;
+  contracts: SiteConfigContracts;
+}) {
   /**
    * Define product data
    */
@@ -102,14 +116,14 @@ function ProductCardHeader(props: { product: string }) {
     isFetched: isProductParamsFetched,
     refetch: refetchProductParams,
   } = useReadContract({
-    address: siteConfig.contracts.product,
+    address: props.contracts.product,
     abi: productAbi,
     functionName: "getParams",
     args: [BigInt(props.product)],
   });
   const { data: productMetadataUri, isFetched: isProductMetadataUriFetched } =
     useReadContract({
-      address: siteConfig.contracts.product,
+      address: props.contracts.product,
       abi: productAbi,
       functionName: "tokenURI",
       args: [BigInt(props.product)],
@@ -131,7 +145,10 @@ function ProductCardHeader(props: { product: string }) {
 
   function OpenPageButton() {
     return (
-      <a href={`/products/${props.product}`} target="_blank">
+      <a
+        href={`/products/${props.contracts.chain.id}/${props.product}`}
+        target="_blank"
+      >
         <Button>Open Product Page</Button>
       </a>
     );
@@ -161,6 +178,12 @@ function ProductCardHeader(props: { product: string }) {
       <div className="w-full">
         <p className="text-xl font-bold">{productMetadata?.label}</p>
         <div className="flex flex-col gap-3 mt-4">
+          <div className="flex flex-col md:flex-row md:gap-3">
+            <p className="min-w-[140px] text-sm text-muted-foreground">
+              Chain:
+            </p>
+            <p className="text-sm break-all">{props.contracts.chain.name}</p>
+          </div>
           <div className="flex flex-col md:flex-row md:gap-3">
             <p className="min-w-[140px] text-sm text-muted-foreground">
               Subscription cost:
@@ -193,7 +216,7 @@ function ProductCardHeader(props: { product: string }) {
             </p>
             <p className="text-sm break-all">
               <a
-                href={`${siteConfig.contracts.chain.blockExplorers.default.url}/address/${productParams?.subscriptionToken}`}
+                href={`${props.contracts.chain.blockExplorers?.default?.url}/address/${productParams?.subscriptionToken}`}
                 target="_blank"
                 className="underline underline-offset-4"
               >
@@ -217,6 +240,7 @@ function ProductCardHeader(props: { product: string }) {
           <OpenPageButton />
           <ProductWithdrawDialog
             product={props.product}
+            contracts={props.contracts}
             onWithdraw={() => refetchProductParams()}
           />
         </div>
@@ -225,9 +249,12 @@ function ProductCardHeader(props: { product: string }) {
   );
 }
 
-function ProductCardSubscribers(props: { product: string }) {
+function ProductCardSubscribers(props: {
+  product: string;
+  contracts: SiteConfigContracts;
+}) {
   const { data: subscribers } = useReadContract({
-    address: siteConfig.contracts.product,
+    address: props.contracts.product,
     abi: productAbi,
     functionName: "getSubscribers",
     args: [BigInt(props.product)],
@@ -255,6 +282,7 @@ function ProductCardSubscribers(props: { product: string }) {
                 key={index}
                 product={props.product}
                 subscriber={subscriber}
+                contracts={props.contracts}
               />
             ))}
           </div>
@@ -269,10 +297,11 @@ function ProductCardSubscribers(props: { product: string }) {
 function ProductCardSubscriber(props: {
   product: string;
   subscriber: `0x${string}`;
+  contracts: SiteConfigContracts;
 }) {
   const { data: lastPaymentDate, isFetching: isLastPaymentDateFetching } =
     useReadContract({
-      address: siteConfig.contracts.product,
+      address: props.contracts.product,
       abi: productAbi,
       functionName: "getLastPaymentDate",
       args: [BigInt(props.product), props.subscriber],
@@ -286,7 +315,7 @@ function ProductCardSubscriber(props: {
     <>
       <p className="text-sm">
         <a
-          href={`${siteConfig.contracts.chain.blockExplorers.default.url}/address/${props.subscriber}`}
+          href={`${props.contracts.chain.blockExplorers?.default?.url}/address/${props.subscriber}`}
           target="_blank"
           className="underline underline-offset-4"
         >

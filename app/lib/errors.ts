@@ -1,11 +1,14 @@
-import { siteConfig } from "@/config/site";
+import { SiteConfigContracts } from "@/config/site";
 import { productAbi } from "@/contracts/abi/product";
 import { decodeErrorResult } from "viem";
 
 /**
  * Convert error object to pretty object with error message and severity.
  */
-export function errorToPrettyError(error: any): {
+export function errorToPrettyError(
+  error: any,
+  contracts: SiteConfigContracts
+): {
   message: string;
   severity: "info" | "error" | undefined;
 } {
@@ -21,7 +24,7 @@ export function errorToPrettyError(error: any): {
   }
   if (
     error?.cause?.cause?.cause?.cause?.cause?.data &&
-    error?.contractAddress == siteConfig.contracts.product
+    error?.contractAddress == contracts?.product
   ) {
     const value = decodeErrorResult({
       abi: productAbi,

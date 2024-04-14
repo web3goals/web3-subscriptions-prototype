@@ -1,6 +1,6 @@
 "use client";
 
-import { siteConfig } from "@/config/site";
+import { SiteConfigContracts } from "@/config/site";
 import { productAbi } from "@/contracts/abi/product";
 import useMetadataLoader from "@/hooks/useMetadataLoader";
 import { ProductMetadata } from "@/types/product-metadata";
@@ -11,20 +11,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
 
-export function Product(props: { product: string }) {
+export function Product(props: {
+  product: string;
+  contracts: SiteConfigContracts;
+}) {
   /**
    * Define product data
    */
   const { data: productParams, isFetched: isProductParamsFetched } =
     useReadContract({
-      address: siteConfig.contracts.product,
+      address: props.contracts.product,
       abi: productAbi,
       functionName: "getParams",
       args: [BigInt(props.product)],
     });
   const { data: productMetadataUri, isFetched: isProductMetadataUriFetched } =
     useReadContract({
-      address: siteConfig.contracts.product,
+      address: props.contracts.product,
       abi: productAbi,
       functionName: "tokenURI",
       args: [BigInt(props.product)],
@@ -71,6 +74,7 @@ export function Product(props: { product: string }) {
         subscriptionCost={productParams?.subscriptionCost || BigInt(0)}
         subscriptionToken={productParams?.subscriptionToken || zeroAddress}
         subscriptionTokenSymbol={productSubscriptionTokenSymbol || ""}
+        contracts={props.contracts}
       />
     </div>
   );
