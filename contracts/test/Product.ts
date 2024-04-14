@@ -35,7 +35,7 @@ describe("Product", function () {
   }
 
   it("Should support the main flow", async function () {
-    const { userOne, userTwo, usdTokenContract, productContract } =
+    const { userOne, userTwo, userThree, usdTokenContract, productContract } =
       await loadFixture(initFixture);
     // Create product
     await expect(productContract.connect(userOne).create("ipfs://1")).to.be.not
@@ -60,7 +60,7 @@ describe("Product", function () {
     ).to.be.not.reverted;
     // Subscribe
     await expect(
-      productContract.connect(userTwo).subscribe(productId, "test@test.com")
+      productContract.connect(userTwo).subscribe(productId)
     ).to.changeTokenBalances(
       usdTokenContract,
       [userTwo, productContract],
@@ -81,10 +81,10 @@ describe("Product", function () {
     );
     // Withraw
     await expect(
-      productContract.connect(userOne).withdraw(productId)
+      productContract.connect(userOne).withdraw(productId, userThree)
     ).to.changeTokenBalances(
       usdTokenContract,
-      [userOne, productContract],
+      [userThree, productContract],
       [ethers.parseEther("4"), ethers.parseEther("-4")]
     );
   });

@@ -48,13 +48,13 @@ contract Product is ERC721URIStorage, ERC721Holder {
         );
     }
 
-    function subscribe(uint tokenId, string memory email) public {
+    function subscribe(uint tokenId) public {
         // Check that the caller is not a subscriber
         require(!_isSubscriber(tokenId, msg.sender), "Already subscribed");
         // Save subscriber
         _subscribers[tokenId].push(msg.sender);
         // Make the first payment
-        _makePayment(tokenId, msg.sender, email);
+        _makePayment(tokenId, msg.sender);
     }
 
     function processSubscribers() public {
@@ -79,13 +79,20 @@ contract Product is ERC721URIStorage, ERC721Holder {
         return _subscribers[tokenId];
     }
 
-    function withdraw(uint tokenId) public {
+    function getLastPaymentDate(
+        uint tokenId,
+        address subscriber
+    ) public view returns (uint lastPaymentDate) {
+        return _payments[tokenId][subscriber];
+    }
+
+    function withdraw(uint tokenId, address destination) public {
         // Check owner and balance
         require(_ownerOf(tokenId) == msg.sender, "Not owner");
         require(_params[tokenId].balance > 0, "Balance is zero");
         // Send tokens
         IERC20(_params[tokenId].subscriptionToken).transfer(
-            msg.sender,
+            destination,
             _params[tokenId].balance
         );
         // Update params
@@ -104,11 +111,7 @@ contract Product is ERC721URIStorage, ERC721Holder {
         return false;
     }
 
-    function _makePayment(
-        uint tokenId,
-        address subscriberAddress,
-        string memory subscriberEmail
-    ) internal {
+    function _makePayment(uint tokenId, address subscriberAddress) internal {
         // Check allowance
         if (
             IERC20(_params[tokenId].subscriptionToken).allowance(
@@ -143,13 +146,11 @@ contract Product is ERC721URIStorage, ERC721Holder {
         _payments[tokenId][subscriberAddress] = block.timestamp;
         // Update product balance
         _params[tokenId].balance += _params[tokenId].subscriptionCost;
-        // Send data to webhook
-        // TODO:
     }
 
     function _processSubscribers(uint tokenId) internal {
         for (uint256 i = 0; i < _subscribers[tokenId].length; i++) {
-            _makePayment(tokenId, _subscribers[tokenId][i], "");
+            _makePayment(tokenId, _subscribers[tokenId][i]);
         }
     }
 }
