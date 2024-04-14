@@ -27,7 +27,7 @@ export async function generateAccount() {
 export async function getSmartAccountAddress(
   owner: `0x${string}`
 ): Promise<string | undefined> {
-  console.log("getSmartAccountVia");
+  console.log("getSmartAccountAddress");
 
   const fakeBundlerAccount = privateKeyToAccount(
     process.env.FAKE_BUNDLER_ACCOUNT_PRIVATE_KEY as `0x${string}`
