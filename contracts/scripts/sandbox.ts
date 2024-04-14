@@ -1,23 +1,10 @@
-import { ethers } from "hardhat";
-
-// Etherlink data
-// const ENTRY_POINT_CONTRACT_ADDRESS =
-//   "0x539dA825856778B593a55aC4E8A0Ec1441f18e78";
-// const ACCOUNT_FACTORY_CONTRACT_ADDRESS =
-//   "0x1F2c31D5034F27A4352Bc6ca0fc72cdC32809808";
-// const PAYMASTER_CONTRACT_ADDRESS = "0x57d1469c53Bb259Dc876A274ADd329Eb703Ab286";
-// const USD_TOKEN_CONTRACT_ADDRESS = "0xe720443310986E173af339fA366A30aa0A1Ea5b2";
-
-// Localhost data
-const ENTRY_POINT_CONTRACT_ADDRESS =
-  "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const ACCOUNT_FACTORY_CONTRACT_ADDRESS =
-  "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-const PAYMASTER_CONTRACT_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
-const USD_TOKEN_CONTRACT_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+import hre, { ethers } from "hardhat";
+import { CONTRACTS } from "./data/deployed-contracts";
 
 async function main() {
   console.log("👟 Start script 'sandbox'");
+
+  const network = hre.network.name;
 
   // Get signers
   const [deployer, userOne, userTwo, userThree] = await ethers.getSigners();
@@ -32,11 +19,11 @@ async function main() {
   // Define contracts
   const entryPointContract = await ethers.getContractAt(
     "CustomEntryPoint",
-    ENTRY_POINT_CONTRACT_ADDRESS
+    CONTRACTS[network].entryPoint as `0x${string}`
   );
 
   let initCode =
-    ACCOUNT_FACTORY_CONTRACT_ADDRESS +
+    (CONTRACTS[network].accountFactory as `0x${string}`) +
     accountFactoryContractFactory.interface
       .encodeFunctionData("createAccount", [await deployer.getAddress()])
       .slice(2);
@@ -65,7 +52,7 @@ async function main() {
   const callData = accountContractFactory.interface.encodeFunctionData(
     "execute",
     [
-      USD_TOKEN_CONTRACT_ADDRESS,
+      CONTRACTS[network].usdToken as `0x${string}`,
       ethers.ZeroHash,
       usdTokenContractFactory.interface.encodeFunctionData("mint", [2]),
     ]
@@ -83,7 +70,7 @@ async function main() {
     maxFeePerGas: "0x" + Number(ethers.parseUnits("2", "gwei")).toString(16),
     maxPriorityFeePerGas:
       "0x" + Number(ethers.parseUnits("2", "gwei")).toString(16),
-    paymasterAndData: PAYMASTER_CONTRACT_ADDRESS,
+    paymasterAndData: CONTRACTS[network].paymaster as `0x${string}`,
     signature:
       "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c",
   };

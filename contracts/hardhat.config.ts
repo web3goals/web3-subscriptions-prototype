@@ -19,6 +19,10 @@ const config: HardhatUserConfig = {
       url: "https://node.ghostnet.etherlink.com",
       accounts: [process.env.PRIVATE_KEY as string],
     },
+    shardeumTestnet: {
+      url: "http://18.185.76.64:8080",
+      accounts: [process.env.PRIVATE_KEY as string],
+    },
   },
 };
 
