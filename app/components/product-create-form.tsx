@@ -3,6 +3,7 @@
 import { siteConfig } from "@/config/site";
 import { productAbi } from "@/contracts/abi/product";
 import useError from "@/hooks/useError";
+import { executeViaSmartAccount } from "@/lib/actions";
 import { uploadJsonToIpfs } from "@/lib/ipfs";
 import { ProductMetadata } from "@/types/product-metadata";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,10 +16,8 @@ import {
   isAddress,
   parseEther,
   parseEventLogs,
-  stringToBytes,
-  stringToHex,
 } from "viem";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, usePublicClient } from "wagmi";
 import { z } from "zod";
 import { Button } from "./ui/button";
 import {
@@ -39,12 +38,10 @@ import {
 } from "./ui/select";
 import { Textarea } from "./ui/textarea";
 import { toast } from "./ui/use-toast";
-import { executeViaSmartAccount } from "@/lib/actions";
 
 export function ProductCreateForm() {
   const { handleError } = useError();
   const publicClient = usePublicClient();
-  // const { data: walletClient } = useWalletClient();
   const { address } = useAccount();
   const router = useRouter();
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
