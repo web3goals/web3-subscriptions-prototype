@@ -147,11 +147,13 @@ function ProductCardHeader(props: { product: string }) {
 
   function WithdrawButton() {
     const { handleError } = useError();
+    const { address } = useAccount();
     const publicClient = usePublicClient();
     const { data: walletClient } = useWalletClient();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // TODO: Use smart account
+    // TODO: Show dialog with address input
     async function onSubmit() {
       try {
         setIsSubmitting(true);
@@ -168,7 +170,7 @@ function ProductCardHeader(props: { product: string }) {
           address: siteConfig.contracts.product,
           abi: productAbi,
           functionName: "withdraw",
-          args: [BigInt(props.product)],
+          args: [BigInt(props.product), address || zeroAddress],
         });
         const txHash = await walletClient.writeContract(request);
         await publicClient.waitForTransactionReceipt({
@@ -302,7 +304,7 @@ function ProductCardSubscribers(props: { product: string }) {
       </div>
       {/* Content */}
       <div className="w-full">
-        <p className="text-base font-bold">Subscribers & Payments</p>
+        <p className="text-base font-bold">Subscribers & Last Payments</p>
         {subscribers ? (
           <div className="flex flex-col gap-4 mt-4">
             {subscribers.length === 0 && (
@@ -324,11 +326,21 @@ function ProductCardSubscribers(props: { product: string }) {
   );
 }
 
-// TODO: Load subscriber last payment in a independent component using smart contract
 function ProductCardSubscriber(props: {
   product: string;
   subscriber: `0x${string}`;
 }) {
+  const { data: lastPaymentDate } = useReadContract({
+    address: siteConfig.contracts.product,
+    abi: productAbi,
+    functionName: "getLastPaymentDate",
+    args: [BigInt(props.product), props.subscriber],
+  });
+
+  if (!lastPaymentDate) {
+    return <Skeleton className="w-full h-8" />;
+  }
+
   return (
     <>
       <p className="text-sm">
@@ -339,6 +351,10 @@ function ProductCardSubscriber(props: {
         >
           {addressToShortAddress(props.subscriber)}
         </a>
+        <span className="text-muted-foreground">
+          {" "}
+          — {new Date(Number(lastPaymentDate) * 1000).toLocaleString()}
+        </span>
       </p>
     </>
   );

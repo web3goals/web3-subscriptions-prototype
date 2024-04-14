@@ -2,13 +2,10 @@
 
 import { siteConfig } from "@/config/site";
 import Link from "next/link";
-import { useAccount } from "wagmi";
 import { SiteHeaderConnectButton } from "./site-header-connect-button";
 import { ThemeToggle } from "./theme-toggle";
 
-export function SiteHeader() {
-  const { address } = useAccount();
-
+export function SiteUserHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
@@ -22,22 +19,6 @@ export function SiteHeader() {
         </div>
         <div className="flex flex-1 items-center justify-end space-x-8">
           <SiteHeaderConnectButton />
-          {address && (
-            <Link
-              href={`/dashboard`}
-              className="hidden md:block text-sm font-medium text-muted-foreground"
-            >
-              Dashboard
-            </Link>
-          )}
-          <Link
-            href={siteConfig.links.github}
-            target="_blank"
-            rel="noreferrer"
-            className="hidden md:block text-sm font-medium text-muted-foreground"
-          >
-            GitHub
-          </Link>
           <ThemeToggle />
         </div>
       </div>

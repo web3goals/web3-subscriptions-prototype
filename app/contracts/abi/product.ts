@@ -181,6 +181,30 @@ export const productAbi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "subscriber",
+        type: "address",
+      },
+    ],
+    name: "getLastPaymentDate",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "lastPaymentDate",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "getNextTokenId",
     outputs: [
@@ -454,11 +478,6 @@ export const productAbi = [
         name: "tokenId",
         type: "uint256",
       },
-      {
-        internalType: "string",
-        name: "email",
-        type: "string",
-      },
     ],
     name: "subscribe",
     outputs: [],
@@ -545,6 +564,11 @@ export const productAbi = [
         internalType: "uint256",
         name: "tokenId",
         type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "destination",
+        type: "address",
       },
     ],
     name: "withdraw",
