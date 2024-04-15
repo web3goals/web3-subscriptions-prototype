@@ -1,5 +1,6 @@
 "use client";
 
+import { siteConfig } from "@/config/site";
 import { productAbi } from "@/contracts/abi/product";
 import useError from "@/hooks/useError";
 import { executeViaSmartAccount } from "@/lib/actions";
@@ -268,8 +269,16 @@ export function ProductCreateForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="128123">Etherlink Testnet</SelectItem>
-                  <SelectItem value="8082">Shardeum Testnet</SelectItem>
+                  {Object.values(siteConfig.contracts).map(
+                    (contracts, index) => (
+                      <SelectItem
+                        key={index}
+                        value={contracts.chain.id.toString()}
+                      >
+                        {contracts.chain.name}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
