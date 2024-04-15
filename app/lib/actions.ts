@@ -114,11 +114,11 @@ export async function executeViaSmartAccount(
       args: [initCode as `0x${string}`],
     });
   } catch (error: any) {
-    console.log("error:", JSON.stringify(error));
-    console.log(
-      "error:",
-      error?.cause?.cause?.cause?.cause?.cause?.cause?.data
-    );
+    // console.log("error:", JSON.stringify(error));
+    // console.log(
+    //   "error:",
+    //   error?.cause?.cause?.cause?.cause?.cause?.cause?.data
+    // );
     const value = decodeErrorResult({
       abi: entryPointAbi,
       data: error?.cause?.cause?.cause?.cause?.cause?.cause
@@ -157,8 +157,8 @@ export async function executeViaSmartAccount(
     initCode: initCode as `0x${string}`,
     callData: callData as `0x${string}`,
     callGasLimit: BigInt(10_000_000),
-    verificationGasLimit: BigInt(500_000),
-    preVerificationGas: BigInt(100_000),
+    verificationGasLimit: BigInt(1_000_000),
+    preVerificationGas: BigInt(1_000_000),
     maxFeePerGas: parseUnits("2", etherUnits.gwei),
     maxPriorityFeePerGas: parseUnits("2", etherUnits.gwei),
     paymasterAndData: contracts.paymaster,
