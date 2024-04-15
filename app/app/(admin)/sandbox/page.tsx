@@ -12,9 +12,9 @@ export default function SandboxPage() {
   const { address, chain } = useAccount();
   const { contracts } = useSiteConfigContracts(chain);
 
-  async function mintUsdt() {
+  async function mintUsdtViaSmartAccount() {
     try {
-      console.log("mintUsdt");
+      console.log("mintUsdtViaSmartAccount");
       // console.log(contracts);
       executeViaSmartAccount(
         address as `0x${string}`,
@@ -40,7 +40,9 @@ export default function SandboxPage() {
       <div className="flex flex-col items-start gap-4">
         <p>Account — {address}</p>
         <p>Chain — {chain?.id}</p>
-        <Button onClick={mintUsdt}>Mint USDT</Button>
+        <Button onClick={mintUsdtViaSmartAccount}>
+          Mint USDT (via Smart Account)
+        </Button>
       </div>
     </div>
   );

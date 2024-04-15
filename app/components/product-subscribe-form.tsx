@@ -58,30 +58,24 @@ export function ProductSubscribeForm(props: {
       }
       // Send request to approve transfers
       const approveAmount = parseEther("1000");
-      const { request: approveRequest } = await publicClient.simulateContract({
-        account: walletClient.account.address,
+      const approveTxHash = await walletClient.writeContract({
         address: props.subscriptionToken,
         abi: erc20Abi,
         functionName: "approve",
         args: [props.contracts.product, approveAmount],
+        chain: props.contracts.chain,
       });
-      const approveTxHash = await walletClient.writeContract(approveRequest);
       await publicClient.waitForTransactionReceipt({
         hash: approveTxHash,
       });
-      // Subscribe
-      const { request: subscribeRequest } = await publicClient.simulateContract(
-        {
-          account: walletClient.account.address,
-          address: props.contracts.product,
-          abi: productAbi,
-          functionName: "subscribe",
-          args: [BigInt(props.product)],
-        }
-      );
-      const subscribeTxHash = await walletClient.writeContract(
-        subscribeRequest
-      );
+      // Send request to subscribe
+      const subscribeTxHash = await walletClient.writeContract({
+        address: props.contracts.product,
+        abi: productAbi,
+        functionName: "subscribe",
+        args: [BigInt(props.product)],
+        chain: props.contracts.chain,
+      });
       await publicClient.waitForTransactionReceipt({
         hash: subscribeTxHash,
       });

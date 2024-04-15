@@ -18,7 +18,7 @@ import {
   parseEther,
   parseEventLogs,
 } from "viem";
-import { useAccount, usePublicClient } from "wagmi";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { z } from "zod";
 import { Button } from "./ui/button";
 import {
@@ -43,6 +43,7 @@ import { toast } from "./ui/use-toast";
 export function ProductCreateForm() {
   const { handleError } = useError();
   const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
   const { address } = useAccount();
   const router = useRouter();
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
@@ -75,16 +76,18 @@ export function ProductCreateForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsFormSubmitting(true);
+
       // Check public client
       if (!publicClient) {
         throw new Error("Public client is not ready");
       }
       // Check wallet
-      if (!address) {
+      if (!address || !walletClient) {
         throw new Error("Wallet is not connected");
       }
       // Define contracts
       const contracts = chainToSiteConfigContracts(values.subscriptionChain);
+
       // Parse values
       let subscriptionCost = parseEther(String(values.subscriptionCost));
       let subscriptionToken;
@@ -105,6 +108,7 @@ export function ProductCreateForm() {
       } else {
         throw new Error("Subscription period is incorrect");
       }
+
       // Upload metadata to IPFS
       const metadata: ProductMetadata = {
         icon: values.icon,
@@ -113,17 +117,29 @@ export function ProductCreateForm() {
         webhook: values.webhook,
       };
       const metadataUri = await uploadJsonToIpfs(metadata);
-      // Send requests to create a product via smart account
-      const createTxHash = await executeViaSmartAccount(
-        address,
-        contracts.product,
-        encodeFunctionData({
+
+      // Send request to create a product
+      let createTxHash;
+      if (contracts.accountAbstractionSuported) {
+        createTxHash = await executeViaSmartAccount(
+          address,
+          contracts.product,
+          encodeFunctionData({
+            abi: productAbi,
+            functionName: "create",
+            args: [metadataUri],
+          }),
+          contracts
+        );
+      } else {
+        createTxHash = await walletClient.writeContract({
+          address: contracts.product,
           abi: productAbi,
           functionName: "create",
           args: [metadataUri],
-        }),
-        contracts
-      );
+          chain: contracts.chain,
+        });
+      }
       const createTxReceipt = await publicClient.waitForTransactionReceipt({
         hash: createTxHash as `0x${string}`,
       });
@@ -133,11 +149,28 @@ export function ProductCreateForm() {
         logs: createTxReceipt.logs,
       });
       const createdProductId = createTxLogs[0].args.tokenId;
-      // Send request to set product params via smart account
-      const setParamstxHash = await executeViaSmartAccount(
-        address,
-        contracts.product,
-        encodeFunctionData({
+
+      // Send request to set product params
+      let setParamstxHash;
+      if (contracts.accountAbstractionSuported) {
+        setParamstxHash = await executeViaSmartAccount(
+          address,
+          contracts.product,
+          encodeFunctionData({
+            abi: productAbi,
+            functionName: "setParams",
+            args: [
+              createdProductId,
+              subscriptionCost,
+              subscriptionToken,
+              subscriptionPeriod,
+            ],
+          }),
+          contracts
+        );
+      } else {
+        setParamstxHash = await walletClient.writeContract({
+          address: contracts.product,
           abi: productAbi,
           functionName: "setParams",
           args: [
@@ -146,12 +179,13 @@ export function ProductCreateForm() {
             subscriptionToken,
             subscriptionPeriod,
           ],
-        }),
-        contracts
-      );
+          chain: contracts.chain,
+        });
+      }
       await publicClient.waitForTransactionReceipt({
         hash: setParamstxHash as `0x${string}`,
       });
+
       // Show success message
       toast({
         title: "Product created 👌",

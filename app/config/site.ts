@@ -10,6 +10,7 @@ export type SiteConfigContracts = {
   entryPoint: `0x${string}`;
   paymaster: `0x${string}`;
   accountFactory: `0x${string}`;
+  accountAbstractionSuported: boolean;
 };
 
 export const siteConfig = {
@@ -28,15 +29,17 @@ export const siteConfig = {
       paymaster: "0x57d1469c53Bb259Dc876A274ADd329Eb703Ab286" as `0x${string}`,
       accountFactory:
         "0xBBae3088AaF60c44Fb932ba82fd0b3dbb2d67C6F" as `0x${string}`,
+      accountAbstractionSuported: true,
     } as SiteConfigContracts,
     shardeumTestnet: {
       chain: shardeumTestnet,
-      product: "0x2168609301437822c7AD3f35114B10941866F20a" as `0x${string}`,
+      product: "0x418d621b98Cc75a09327725620F9ec949615396E" as `0x${string}`,
       usdt: "0x96E6AF6E9e400d0Cd6a4045F122df22BCaAAca59" as `0x${string}`,
       entryPoint: "0x02008a8DBc938bd7930bf370617065B6B0c1221a" as `0x${string}`,
       paymaster: "0x1e4712A93beEc0aa26151CF44061eE91DD56f921" as `0x${string}`,
       accountFactory:
         "0xFe0AeD5cBEE89869FF505e10A5eBb75e9FC819D7" as `0x${string}`,
+      accountAbstractionSuported: false,
     } as SiteConfigContracts,
   },
 };

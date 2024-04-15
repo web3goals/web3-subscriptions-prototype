@@ -26,7 +26,7 @@ export function ProductList(props: { contracts: SiteConfigContracts }) {
   const [products, setProducts] = useState<string[] | undefined>();
 
   const { data } = useInfiniteReadContracts({
-    cacheKey: "products",
+    cacheKey: `products_${props.contracts.chain.id.toString()}`,
     contracts(pageParam) {
       return [...new Array(LIMIT)].map(
         (_, i) =>
@@ -50,10 +50,14 @@ export function ProductList(props: { contracts: SiteConfigContracts }) {
   useEffect(() => {
     setSmartAccountAddress(undefined);
     if (address) {
-      getSmartAccountAddress(address, props.contracts).then(
-        (smartAccountAddress) =>
-          setSmartAccountAddress(smartAccountAddress as `0x${string}`)
-      );
+      if (props.contracts.accountAbstractionSuported) {
+        getSmartAccountAddress(address, props.contracts).then(
+          (smartAccountAddress) =>
+            setSmartAccountAddress(smartAccountAddress as `0x${string}`)
+        );
+      } else {
+        setSmartAccountAddress(address);
+      }
     }
   }, [address, props.contracts]);
 
@@ -84,7 +88,7 @@ export function ProductList(props: { contracts: SiteConfigContracts }) {
           contracts={props.contracts}
         />
       )}
-      noEntitiesText="No products 😐"
+      noEntitiesText={`No products on ${props.contracts.chain.name} 😐`}
     />
   );
 }
@@ -94,9 +98,9 @@ export function ProductCard(props: {
   contracts: SiteConfigContracts;
 }) {
   return (
-    <div className="w-full flex flex-col items-center border rounded px-4 py-4">
+    <div className="w-full flex flex-col items-center border rounded px-6 py-8">
       <ProductCardHeader product={props.product} contracts={props.contracts} />
-      <Separator className="my-4" />
+      <Separator className="my-6" />
       <ProductCardSubscribers
         product={props.product}
         contracts={props.contracts}

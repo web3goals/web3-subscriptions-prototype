@@ -18,11 +18,9 @@ export default function DashboardPage() {
         <Link href="/dashboard/products/new">
           <Button>Create Product</Button>
         </Link>
-        <ProductList contracts={siteConfig.contracts.etherlinkTestnet} />
-        {/* TODO: Use the next code  */}
-        {/* {Object.values(siteConfig.contracts).map((contracts, index) => (
+        {Object.values(siteConfig.contracts).map((contracts, index) => (
           <ProductList key={index} contracts={contracts} />
-        ))} */}
+        ))}
       </div>
     </div>
   );

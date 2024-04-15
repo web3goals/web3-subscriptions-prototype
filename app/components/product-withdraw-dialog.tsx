@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { encodeFunctionData, isAddress } from "viem";
-import { useAccount, usePublicClient } from "wagmi";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { z } from "zod";
 import { Button } from "./ui/button";
 import {
@@ -29,6 +29,7 @@ export function ProductWithdrawDialog(props: {
 }) {
   const { handleError } = useError();
   const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
   const { address } = useAccount();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -53,24 +54,35 @@ export function ProductWithdrawDialog(props: {
         throw new Error("Public client is not ready");
       }
       // Check wallet
-      if (!address) {
+      if (!address || !walletClient) {
         throw new Error("Wallet is not connected");
       }
       // Check address
       if (!isAddress(values.destination)) {
         throw new Error("Specified address is incorrect");
       }
-      // Send request via smart account
-      const setParamstxHash = await executeViaSmartAccount(
-        address,
-        props.contracts.product,
-        encodeFunctionData({
+      // Send request
+      let setParamstxHash;
+      if (props.contracts.accountAbstractionSuported) {
+        setParamstxHash = await executeViaSmartAccount(
+          address,
+          props.contracts.product,
+          encodeFunctionData({
+            abi: productAbi,
+            functionName: "withdraw",
+            args: [BigInt(props.product), values.destination],
+          }),
+          props.contracts
+        );
+      } else {
+        setParamstxHash = await walletClient.writeContract({
+          address: props.contracts.product,
           abi: productAbi,
           functionName: "withdraw",
           args: [BigInt(props.product), values.destination],
-        }),
-        props.contracts
-      );
+          chain: props.contracts.chain,
+        });
+      }
       await publicClient.waitForTransactionReceipt({
         hash: setParamstxHash as `0x${string}`,
       });

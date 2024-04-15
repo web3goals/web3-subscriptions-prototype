@@ -50,7 +50,9 @@ contract Product is ERC721URIStorage, ERC721Holder {
 
     function subscribe(uint tokenId) public {
         // Check that the caller is not a subscriber
-        require(!_isSubscriber(tokenId, msg.sender), "Already subscribed");
+        if (_isSubscriber(tokenId, msg.sender)) {
+            return;
+        }
         // Save subscriber
         _subscribers[tokenId].push(msg.sender);
         // Make the first payment
