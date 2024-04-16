@@ -17,3 +17,7 @@ A platform to manage crypto subscriptions in a few clicks.
   - Entry Point - [0x02008a8DBc938bd7930bf370617065B6B0c1221a](https://explorer-hackathon.shardeum.org/address/0x02008a8DBc938bd7930bf370617065B6B0c1221a)
   - Paymaster - [0x1e4712A93beEc0aa26151CF44061eE91DD56f921](https://explorer-hackathon.shardeum.org/address/0x1e4712A93beEc0aa26151CF44061eE91DD56f921)
   - Account Factory - [0xFe0AeD5cBEE89869FF505e10A5eBb75e9FC819D7](https://explorer-hackathon.shardeum.org/address/0xFe0AeD5cBEE89869FF505e10A5eBb75e9FC819D7)
+
+## Architecture
+
+![Architecture](/architecture.png)
