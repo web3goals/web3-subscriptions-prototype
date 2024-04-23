@@ -18,7 +18,7 @@ export const CONTRACTS: {
     entryPoint: "0x02008a8DBc938bd7930bf370617065B6B0c1221a",
     accountFactory: "0xFe0AeD5cBEE89869FF505e10A5eBb75e9FC819D7",
     paymaster: "0x1e4712A93beEc0aa26151CF44061eE91DD56f921",
-    product: undefined,
+    product: "0x418d621b98Cc75a09327725620F9ec949615396E",
     usdToken: "0x96E6AF6E9e400d0Cd6a4045F122df22BCaAAca59",
   },
 };
